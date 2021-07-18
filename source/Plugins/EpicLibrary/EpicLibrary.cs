@@ -70,7 +70,8 @@ namespace EpicLibrary
                         Path = string.Format(EpicLauncher.GameLaunchUrlMask, app.AppName),
                         IsHandledByPlugin = true
                     },
-                    Platform = "PC"
+                    Platform = "PC",
+                    Version = app.AppVersion
                 };
 
                 game.Name = game.Name.RemoveTrademarks();
@@ -96,6 +97,7 @@ namespace EpicLibrary
                 var cacheFile = Paths.GetSafePathName($"{gameAsset.@namespace}_{gameAsset.catalogItemId}_{gameAsset.buildVersion}.json");
                 cacheFile = Path.Combine(cacheDir, cacheFile);
                 var catalogItem = accountApi.GetCatalogItem(gameAsset.@namespace, gameAsset.catalogItemId, cacheFile);
+                logger.Info($"Game Checked: {catalogItem.title}");
                 if (catalogItem?.categories?.Any(a => a.path == "applications") != true)
                 {
                     continue;
@@ -111,8 +113,10 @@ namespace EpicLibrary
                     Source = "Epic",
                     GameId = gameAsset.appName,
                     Name = catalogItem.title.RemoveTrademarks(),
-                    Platform = "PC"
+                    Platform = "PC",
+                    Version = gameAsset.buildVersion,
                 });
+                logger.Info($"Game Added: {catalogItem.title}");
             }
 
             return games;
@@ -188,6 +192,22 @@ namespace EpicLibrary
                             installed.Playtime = game.Playtime;
                             installed.LastActivity = game.LastActivity;
                             installed.Name = game.Name;
+                            if (game.Version != installed.Version)
+                            {
+                                installed.Outdated = true;
+                                logger.Info($"Game: {game.Name} needs an update.");
+                                playniteApi.Notifications.Add(new NotificationMessage(
+                                    "updateAvailable-" + Guid.NewGuid(),
+                                    string.Format("An update is available for {0} via the Epic Games Store", installed.Name),
+                                    NotificationType.Info,
+                                        () => {Client.Open();}
+                                    ));
+                            }
+                            else
+                            {
+                                installed.Outdated = false;
+                                logger.Info($"Game: {game.Name} is up to date.");
+                            }
                         }
                         else
                         {

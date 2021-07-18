@@ -45,5 +45,6 @@ namespace EpicLibrary.Models
         public List<string> ProcessNames;
         public string MainGameAppName;
         public string MandatoryAppFolderName;
+        public string AppVersionString;
     }
 }

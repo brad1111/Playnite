@@ -126,6 +126,12 @@ namespace Playnite.SDK.Models
         /// </summary>
         public bool Favorite { get; set; }
 
+
+        /// <summary>
+        /// Gets or sets outdated
+        /// </summary>
+        public bool Outdated { get; set; }
+
         /// <summary>
         /// Gets or sets Version.
         /// </summary>

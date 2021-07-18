@@ -288,6 +288,25 @@ namespace Playnite.SDK.Models
             }
         }
 
+        private bool outdated;
+
+        /// <summary>
+        /// Gets or sets value indicating if the game needs an update
+        /// </summary>
+        public bool Outdated
+        {
+            get
+            {
+                return outdated;
+            }
+
+            set
+            {
+                outdated = value;
+                OnPropertyChanged();
+            }
+        }
+
         private string icon;
         /// <summary>
         /// Gets or sets game icon. Local file path, HTTP URL or database file ids are supported.

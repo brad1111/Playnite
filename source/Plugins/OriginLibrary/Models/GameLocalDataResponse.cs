@@ -25,9 +25,21 @@ namespace OriginLibrary.Models
                     public string installCheckOverride;
                 }
 
+                public class DownloadURL
+                {
+                    public string buildReleaseVersion;
+                    public DateTime effectiveDate;
+                }
+
                 public string softwareId;
                 public string softwarePlatform;
                 public FulfillmentAttributes fulfillmentAttributes;
+
+                public class DownloadURLs
+                {
+                    public List<DownloadURL> downloadURL;
+                }
+                public DownloadURLs downloadURLs;
             }
 
             public class SoftwareList

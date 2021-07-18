@@ -27,5 +27,20 @@ namespace OriginLibrary.Models
 
         [XmlElement("runtime")]
         public Runtime runtime { get; set; }
+
+        public class BuildMetaData
+        {
+            public class GameVersion
+            {
+                [XmlAttribute("version")]
+                public string version { get; set; }
+            }
+
+            [XmlElement("gameVersion")]
+            public GameVersion gameVersion { get; set; }
+        }
+
+        [XmlElement("buildMetaData")]
+        public BuildMetaData buildMetaData { get; set; }
     }
 }

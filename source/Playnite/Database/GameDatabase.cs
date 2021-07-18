@@ -917,7 +917,8 @@ namespace Playnite.Database
                 CriticScore = game.CriticScore,
                 CommunityScore = game.CommunityScore,
                 Hidden = game.Hidden,
-                Favorite = game.Favorite
+                Favorite = game.Favorite,
+                Outdated = game.Outdated,
             };
 
             if (!game.Platform.IsNullOrEmpty())

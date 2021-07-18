@@ -39,6 +39,7 @@ namespace EpicLibrary.Services
         private readonly string assetsUrl = @"";
         private readonly string catalogUrl = @"";
         private const string authEcodedString = "MzRhMDJjZjhmNDQxNGUyOWIxNTkyMTg3NmRhMzZmOWE6ZGFhZmJjY2M3Mzc3NDUwMzlkZmZlNTNkOTRmYzc2Y2Y=";
+        
 
         public EpicAccountClient(IPlayniteAPI api, string tokensPath)
         {

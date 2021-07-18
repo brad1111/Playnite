@@ -538,6 +538,22 @@ namespace Playnite.DesktopApp.ViewModels
             }
         }
 
+        private bool useOutdatedChanges;
+
+        public bool UseOutdatedChanges
+        {
+            get
+            {
+                return useOutdatedChanges;
+            }
+            set
+            {
+                useOutdatedChanges = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowAdvancedChangeNotif));
+            }
+        }
+
         private bool useScriptRuntimeChanges;
         public bool UseScriptRuntimeChanges
         {

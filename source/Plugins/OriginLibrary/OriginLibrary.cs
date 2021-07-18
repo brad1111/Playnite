@@ -176,7 +176,7 @@ namespace OriginLibrary
             try
             {
                 return OriginApiClient.GetGameLocalData(id);
-            }
+            } 
             catch (WebException exc) when ((exc.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
             {
                 logger.Info($"Origin manifest {id} not found on EA server, generating fake manifest.");
@@ -186,6 +186,21 @@ namespace OriginLibrary
                     offerType = "Doesn't exist"
                 };
             }
+        }
+
+        internal bool IsOutOfDate(string installedVersion, GameLocalDataResponse localData)
+        {
+            var latestVersion = localData.publishing.softwareList.software
+                         .Where(s => s.softwarePlatform == "PCWIN")
+                         .Select(s => 
+                            s.downloadURLs.downloadURL
+                            .Where(url => url.effectiveDate <= DateTime.Now)
+                            .OrderBy(url => url.effectiveDate)
+                            .Select(url => url.buildReleaseVersion)
+                            .First()
+                         )
+                         .First();
+            return installedVersion != latestVersion;
         }
 
         public GameAction GetGamePlayTask(string installerDataPath)

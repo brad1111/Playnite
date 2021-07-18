@@ -546,6 +546,11 @@
                                Visibility="{Binding IsSingleGameEdit, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <TextBlock Grid.Column="5" Grid.Row="2" Text="{Binding LibraryPlugin.Name, FallbackValue='Playnite'}"
                                Visibility="{Binding IsSingleGameEdit, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                    <!-- Outdated -->
+                    <TextBlock Grid.Column="4" Grid.Row="3" Text="" />
+                    <CheckBox Grid.Column="5" Grid.Row="3"
+                              IsChecked="{Binding EditingGame.Outdated}"/>
                 </Grid>
             </TabItem>
 

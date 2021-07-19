@@ -96,6 +96,10 @@ namespace SteamLibrary
                 }
             }
 
+            Console.WriteLine("in");
+            var branch = kv["UserConfig"]["betakey"].AsString() ?? "public";
+            Console.WriteLine("out");
+            
             var game = new GameInfo()
             {
                 Source = "Steam",
@@ -105,7 +109,8 @@ namespace SteamLibrary
                 PlayAction = CreatePlayTask(gameId),
                 IsInstalled = true,
                 Platform = "PC",
-                Version = kv["buildid"].AsUnsignedInteger().ToString()
+                Version = kv["buildid"].AsUnsignedInteger().ToString(),
+                Branch = branch,
             };
 
             return game;
@@ -767,10 +772,11 @@ namespace SteamLibrary
                     {
                         if (installedGames.TryGetValue(game.GameId, out var installed))
                         {
+                            // TODO check for games where the macOS/Linux version has a higher build than windows, so doesn't need to update (e.g. Dirt Rally)
                             installed.Playtime = game.Playtime;
                             installed.LastActivity = game.LastActivity;
-                            var productInfo = apiClient.GetProductInfo(uint.Parse(game.GameId)).GetAwaiter().GetResult();
-                            var latestBuildId = uint.Parse(productInfo["depots"]["branches"]["public"]["buildid"].Value); //TODO branch should be derived from manifest
+                            var productInfo = apiClient.GetProductInfo(uint.Parse(installed.GameId)).GetAwaiter().GetResult();
+                            var latestBuildId = uint.Parse(productInfo["depots"]["branches"][installed.Branch]["buildid"].Value);
 
                             // to prevent cases where version has not been set correctly
                             if (uint.TryParse(installed.Version, out var installedBuild))

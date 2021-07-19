@@ -136,6 +136,11 @@ namespace Playnite.SDK.Models
         /// Gets or sets Version.
         /// </summary>
         public string Version { get; set; }
+        
+        /// <summary>
+        /// Gets or sets Branch
+        /// </summary>
+        public string Branch { get; set; }
 
         /// <summary>
         /// Gets or sets Series.

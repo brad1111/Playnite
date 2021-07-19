@@ -104,7 +104,8 @@ namespace SteamLibrary
                 InstallDirectory = installDir,
                 PlayAction = CreatePlayTask(gameId),
                 IsInstalled = true,
-                Platform = "PC"
+                Platform = "PC",
+                Version = kv["buildid"].AsUnsignedInteger().ToString()
             };
 
             return game;
@@ -752,18 +753,42 @@ namespace SteamLibrary
                 {
                     var libraryGames = GetLibraryGames(LibrarySettings);
                     logger.Debug($"Found {libraryGames.Count} library Steam games.");
-
+                    
                     if (!LibrarySettings.ImportUninstalledGames)
                     {
                         libraryGames = libraryGames.Where(lg => installedGames.ContainsKey(lg.GameId)).ToList();
                     }
 
+                    //temp
+                    var apiClient = new SteamApiClient();
+                    //end temp
+                    
                     foreach (var game in libraryGames)
                     {
                         if (installedGames.TryGetValue(game.GameId, out var installed))
                         {
                             installed.Playtime = game.Playtime;
                             installed.LastActivity = game.LastActivity;
+                            var productInfo = apiClient.GetProductInfo(uint.Parse(game.GameId)).GetAwaiter().GetResult();
+                            var latestBuildId = uint.Parse(productInfo["depots"]["branches"]["public"]["buildid"].Value); //TODO branch should be derived from manifest
+
+                            // to prevent cases where version has not been set correctly
+                            if (uint.TryParse(installed.Version, out var installedBuild))
+                            {
+                                if (installedBuild < latestBuildId)
+                                {
+                                    //Outdated
+                                    installed.Outdated = true;
+                                    logger.Info($"Game: {game.Name} needs an update.");
+                                    PlayniteApi.Notifications.Add(new NotificationMessage(
+                                        "updateAvailable-" + Guid.NewGuid(),
+                                        string.Format("An update is available for {0} via Steam", installed.Name),
+                                        NotificationType.Info,
+                                        () => {Client.Open();}
+                                    ));
+                                }
+                            }
+                            
                         }
                         else
                         {

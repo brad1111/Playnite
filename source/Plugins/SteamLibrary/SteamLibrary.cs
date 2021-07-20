@@ -95,11 +95,16 @@ namespace SteamLibrary
                     installDir = string.Empty;
                 }
             }
-
-            Console.WriteLine("in");
-            var branch = kv["UserConfig"]["betakey"].AsString() ?? "public";
-            Console.WriteLine("out");
             
+            var branch = kv["UserConfig"]["betakey"].AsString() ?? "public";
+            var state = kv["StateFlags"].AsUnsignedInteger();
+            var outdated = (state & 2) == 2; //check outdated flag is set bitwise
+
+            if (outdated)
+            {
+                Console.WriteLine("hi");
+            }
+
             var game = new GameInfo()
             {
                 Source = "Steam",
@@ -111,6 +116,7 @@ namespace SteamLibrary
                 Platform = "PC",
                 Version = kv["buildid"].AsUnsignedInteger().ToString(),
                 Branch = branch,
+                Outdated = outdated,
             };
 
             return game;
@@ -775,26 +781,35 @@ namespace SteamLibrary
                             // TODO check for games where the macOS/Linux version has a higher build than windows, so doesn't need to update (e.g. Dirt Rally)
                             installed.Playtime = game.Playtime;
                             installed.LastActivity = game.LastActivity;
-                            var productInfo = apiClient.GetProductInfo(uint.Parse(installed.GameId)).GetAwaiter().GetResult();
-                            var latestBuildId = uint.Parse(productInfo["depots"]["branches"][installed.Branch]["buildid"].Value);
 
-                            // to prevent cases where version has not been set correctly
-                            if (uint.TryParse(installed.Version, out var installedBuild))
+                            if (!installed.Outdated) //If the manifest doesn't say its outdated we need to check
                             {
-                                if (installedBuild < latestBuildId)
+                                var productInfo = apiClient.GetProductInfo(uint.Parse(installed.GameId)).GetAwaiter()
+                                    .GetResult();
+                                var latestBuildId =
+                                    uint.Parse(productInfo["depots"]["branches"][installed.Branch]["buildid"].Value);
+
+                                // to prevent cases where version has not been set correctly
+                                if (uint.TryParse(installed.Version, out var installedBuild))
                                 {
-                                    //Outdated
-                                    installed.Outdated = true;
-                                    logger.Info($"Game: {game.Name} needs an update.");
-                                    PlayniteApi.Notifications.Add(new NotificationMessage(
-                                        "updateAvailable-" + Guid.NewGuid(),
-                                        string.Format("An update is available for {0} via Steam", installed.Name),
-                                        NotificationType.Info,
-                                        () => {Client.Open();}
-                                    ));
+                                    if (installedBuild < latestBuildId)
+                                    {
+                                        //Outdated
+                                        installed.Outdated = true;
+                                    }
                                 }
                             }
-                            
+
+                            if (installed.Outdated)
+                            {
+                                logger.Info($"Game: {game.Name} needs an update.");
+                                PlayniteApi.Notifications.Add(new NotificationMessage(
+                                    "updateAvailable-" + Guid.NewGuid(),
+                                    string.Format("An update is available for {0} via Steam", installed.Name),
+                                    NotificationType.Info,
+                                    () => { Client.Open(); }
+                                ));
+                            }
                         }
                         else
                         {

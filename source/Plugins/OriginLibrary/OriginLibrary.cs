@@ -188,14 +188,30 @@ namespace OriginLibrary
             }
         }
 
-        internal bool IsOutOfDate(string installedVersion, GameLocalDataResponse localData)
+        internal bool IsOutOfDate(GameLocalDataResponse manifest)
         {
-            var latestVersion = localData.publishing.softwareList.software
+            var platform = manifest.publishing.softwareList.software.FirstOrDefault(a => a.softwarePlatform == "PCWIN");
+            var executePath = GetPathFromPlatformPath(platform.fulfillmentAttributes.executePathOverride);
+            string installerDataPath;
+
+            if (executePath.CompletePath.EndsWith("installerdata.xml"))
+            {
+                installerDataPath = executePath.CompletePath;
+            }
+            else
+            {
+                installerDataPath = $"{executePath.Root}\\__installer\\installerdata.xml";
+            }
+
+            var installerData = GetGameInstallerData(installerDataPath);
+            var installedVersion = installerData.buildMetaData.gameVersion.version;
+            
+            var latestVersion = manifest.publishing.softwareList.software
                          .Where(s => s.softwarePlatform == "PCWIN")
                          .Select(s => 
                             s.downloadURLs.downloadURL
                             .Where(url => url.effectiveDate <= DateTime.Now)
-                            .OrderBy(url => url.effectiveDate)
+                            .OrderByDescending(url => url.effectiveDate)
                             .Select(url => url.buildReleaseVersion)
                             .First()
                          )
@@ -412,6 +428,18 @@ namespace OriginLibrary
                         Path = Origin.GetLaunchString(package.ConvertedId + package.Source)
                     };
 
+                    
+                    if (IsOutOfDate(localData))
+                    {
+                        logger.Info($"Game: {newGame.Name} needs an update.");
+                        PlayniteApi.Notifications.Add(new NotificationMessage(
+                            "updateAvailableOrigin-" + newGame.GameId,
+                            string.Format("An update is available for {0} via Origin", newGame.Name),
+                            NotificationType.Info,
+                            () => { Client.Open(); }
+                        ));
+                    }
+                    
                     games.Add(newGame.GameId, newGame);
                 }
                 catch (Exception e) when (!Environment.IsDebugBuild)
@@ -487,7 +515,7 @@ namespace OriginLibrary
                         Name = gameName,
                         LastActivity = usage?.lastSessionEndTimeStamp,
                         Playtime = usage?.total ?? 0,
-                        Platform = "PC"
+                        Platform = "PC",
                     });
                 }
 

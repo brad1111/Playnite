@@ -204,6 +204,11 @@ namespace OriginLibrary
             }
 
             var installerData = GetGameInstallerData(installerDataPath);
+            if (installerData == null)
+            {
+                // Some games use different installerdata.xml which is incompatible
+                return false;
+            }
             var installedVersion = installerData.buildMetaData.gameVersion.version;
             
             var latestVersion = manifest.publishing.softwareList.software

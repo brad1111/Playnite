@@ -96,7 +96,12 @@ namespace SteamLibrary
                 }
             }
             
-            var branch = kv["UserConfig"]["betakey"].AsString() ?? "public";
+            var branch = kv["UserConfig"]["betakey"].AsString();
+            if (branch.IsNullOrEmpty())
+            {
+                //Failsafe
+                branch = "public";
+            }
             var state = kv["StateFlags"].AsUnsignedInteger();
             var outdated = (state & 2) == 2; //check outdated flag is set bitwise
 
